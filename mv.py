@@ -14,7 +14,7 @@ screen = pygame.display.set_mode(
 # dT = pygame.time.Clock()
 
 
-
+#Código para la creación del shader.
 vertex_shader = """
 #version 460
 layout (location = 0) in vec3 position;
@@ -32,7 +32,7 @@ void main()
 
 }
 """
-
+#Código para la creación del shader.
 fragment_shader = """
 #version 460
 
@@ -99,7 +99,7 @@ glVertexAttribPointer(
 glEnableVertexAttribArray(1)
 
 
-def calculateMatrix(angle):
+def calculateMatrix(angle): #Método para calcular la matriz del modelo.
     i = glm.mat4(1)
     translate = glm.translate(i, glm.vec3(0, 0, 0))
     rotate = glm.rotate(i, glm.radians(angle), glm.vec3(0, 1, 0))
@@ -118,18 +118,18 @@ def calculateMatrix(angle):
         1000/800,
         0.1,
         1000.0
-    )
+    ) #Cálculo de la proyección de la cámara.
 
-    amatrix = projection * view * model
+    amatrix = projection * view * model #Cálculo de la matriz de transformación.
 
     glUniformMatrix4fv(
         glGetUniformLocation(shader, 'amatrix'),
         1,
         GL_FALSE,
         glm.value_ptr(amatrix)
-    )
+    ) #Envío de la matriz de transformación al shader.
 
-glViewport(0, 0, 1000, 800)
+glViewport(0, 0, 1000, 800) #Definición del viewport.
 
 
 
@@ -153,14 +153,14 @@ while running:
         glGetUniformLocation(shader,'color'),
         1,
         glm.value_ptr(color)
-    )
+    ) #Envío del color al shader.
 
-    calculateMatrix(r)
+    calculateMatrix(r) #Calculo de la matriz de transformación.
 
-    pygame.time.wait(1)
+    pygame.time.wait(10)
 
 
-    glDrawArrays(GL_TRIANGLES, 0, 3)
+    glDrawArrays(GL_TRIANGLES, 0, 3) #Dibujo del triángulo.
 
     pygame.display.flip()
 
