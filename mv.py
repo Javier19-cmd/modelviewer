@@ -9,7 +9,7 @@ from Object import *
 pygame.init()
 
 screen = pygame.display.set_mode(
-    (1000, 800),
+    (1920, 1080),
     pygame.OPENGL | pygame.DOUBLEBUF
 )
 # dT = pygame.time.Clock()
@@ -60,12 +60,32 @@ shader = compileProgram(
 
 glUseProgram(shader) #Se usa el shader.
 
-o = Object('bowOBJ.obj')
+o = Object('cube.obj')
 
-#Matriz de vértices para el triángulo.
-vertex_data = numpy.array([
-  o.vertices
-], dtype=numpy.float32) #Matriz para dibujar el triángulo.
+#Recorrer los vértices del objeto y armar la matriz de vértices.
+vertex_data = []
+for v in o.vertices:
+    #print(v)
+    vertex_data.append(v[0])
+    vertex_data.append(v[1])
+    vertex_data.append(v[2])
+
+vertex_data = numpy.array(
+    vertex_data, 
+    dtype=numpy.float32
+    )
+
+print(vertex_data)
+
+# # #Matriz de vértices para el triángulo.
+# vertex_data = numpy.array([
+#     #  X     Y     Z 
+#     -0.5, -0.5,  0.0,
+#     0.5, -0.5,  0.0,
+#     0.0,  0.5,  0.0
+# ], dtype=numpy.float32) #Matriz para dibujar el triángulo.
+
+# print(vertex_data)
 
 
 vertex_buffer_object = glGenBuffers(1)
@@ -117,7 +137,7 @@ def calculateMatrix(angle): #Método para calcular la matriz del modelo.
 
     projection = glm.perspective(
         glm.radians(45),
-        1000/800,
+        1920/1080,
         0.1,
         1000.0
     ) #Cálculo de la proyección de la cámara.
@@ -131,13 +151,24 @@ def calculateMatrix(angle): #Método para calcular la matriz del modelo.
         glm.value_ptr(amatrix)
     ) #Envío de la matriz de transformación al shader.
 
-glViewport(0, 0, 1000, 800) #Definición del viewport.
+glViewport(0, 0, 1920, 1080) #Definición del viewport.
 
 #Método para cargar un objeto.
 def loadObject(path):
     o = Object(path)
 
     vertices = o.vertices
+
+    # #Recorrer los vértices del objeto y armar la matriz de vértices.
+    # vertex_data = []
+    # for v in vertices:
+    #     vertex_data.append(v[0])
+    #     vertex_data.append(v[1])
+    #     vertex_data.append(v[2])
+    
+    # vertex_data = numpy.array(vertex_data, dtype=numpy.float32)
+
+    #print(vertex_data)
 
     vertex_buffer_object = glGenBuffers(1)
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_object)
@@ -209,3 +240,5 @@ while running:
                 r += 20
             if event.key == pygame.K_RIGHT: #Rotación hacia la derecha.
                 r -= 20
+            if event.key == pygame.K_ESCAPE: #Cerrar la simulación con escape.
+                running = False
