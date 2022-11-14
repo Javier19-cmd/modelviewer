@@ -1,10 +1,13 @@
+"""
+Referencia: https://www.youtube.com/watch?v=nIam90_32Cs
+"""
 import numpy
 import random
 import pygame
 from OpenGL.GL import *
 from OpenGL.GL.shaders import *
 import glm
-from Object import *
+from ObjLoader import ObjLoader
 
 pygame.init()
 
@@ -60,34 +63,13 @@ shader = compileProgram(
 
 glUseProgram(shader) #Se usa el shader.
 
-o = Object('cube.obj')
-
-#Recorrer los vértices del objeto y armar la matriz de vértices.
-vertex_data = []
-for v in o.vertices:
-    #print(v)
-    vertex_data.append(v[0])
-    vertex_data.append(v[1])
-    vertex_data.append(v[2])
-
-vertex_data = numpy.array(
-    vertex_data, 
-    dtype=numpy.float32
-    )
-
-print(vertex_data)
-
-# # #Matriz de vértices para el triángulo.
-# vertex_data = numpy.array([
-#     #  X     Y     Z 
-#     -0.5, -0.5,  0.0,
-#     0.5, -0.5,  0.0,
-#     0.0,  0.5,  0.0
-# ], dtype=numpy.float32) #Matriz para dibujar el triángulo.
+#Obteniendo los datos del modelo.
+indices, vertex_data = ObjLoader.load_model('Car.obj')
 
 # print(vertex_data)
+# print(indices)
 
-
+#Vértices del modelo.
 vertex_buffer_object = glGenBuffers(1)
 glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_object)
 glBufferData(
@@ -96,18 +78,50 @@ glBufferData(
     vertex_data, # puntero a la data
     GL_STATIC_DRAW
 )
-vertex_array_object = glGenVertexArrays(1)
-glBindVertexArray(vertex_array_object)
 
+#Trabajando los índices del modelo.
+index_buffer_object = glGenBuffers(1)
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_object)
+glBufferData(
+    GL_ELEMENT_ARRAY_BUFFER,
+    indices.nbytes,
+    indices,
+    GL_STATIC_DRAW
+)
+
+#Trabjando las texturas del modelo.
+texture = glGenTextures(1)
+glBindTexture(GL_TEXTURE_2D, texture)
+
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+glEnableVertexAttribArray(0)
 glVertexAttribPointer(
     0,
     3,
     GL_FLOAT,
     GL_FALSE,
-    3 * 4,
+    32,
     ctypes.c_void_p(0)
-) #Aquí se calculan los saltos que se darán en los índices de la matriz de vértices. (Esto es para los vérices del triángulo).
+) #Aquí se calculan los saltos que se darán en los índices de la matriz de vértices. (Esto es para los vérices del triángulo).    
+
+
+vertex_array_object = glGenVertexArrays(1)
+glBindVertexArray(vertex_array_object)
+
 glEnableVertexAttribArray(0)
+glVertexAttribPointer(
+    0,
+    3,
+    GL_FLOAT,
+    GL_FALSE,
+    32,
+    ctypes.c_void_p(12)
+) #Aquí se calculan los saltos que se darán en los índices de la matriz de vértices. (Esto es para los vérices del triángulo).
 
 
 # glVertexAttribPointer(
@@ -125,7 +139,7 @@ def calculateMatrix(angle): #Método para calcular la matriz del modelo.
     i = glm.mat4(1)
     translate = glm.translate(i, glm.vec3(0, 0, 0))
     rotate = glm.rotate(i, glm.radians(angle), glm.vec3(0, 1, 0))
-    scale = glm.scale(i, glm.vec3(1, 1, 1))
+    scale = glm.scale(i, glm.vec3(3, 3, 3))
 
     model = translate * rotate * scale
 
@@ -151,51 +165,14 @@ def calculateMatrix(angle): #Método para calcular la matriz del modelo.
         glm.value_ptr(amatrix)
     ) #Envío de la matriz de transformación al shader.
 
-glViewport(0, 0, 1920, 1080) #Definición del viewport.
+glViewport(0, 0, 1000, 500) #Definición del viewport.
 
-#Método para cargar un objeto.
-def loadObject(path):
-    o = Object(path)
-
-    vertices = o.vertices
-
-    # #Recorrer los vértices del objeto y armar la matriz de vértices.
-    # vertex_data = []
-    # for v in vertices:
-    #     vertex_data.append(v[0])
-    #     vertex_data.append(v[1])
-    #     vertex_data.append(v[2])
-    
-    # vertex_data = numpy.array(vertex_data, dtype=numpy.float32)
-
-    #print(vertex_data)
-
-    vertex_buffer_object = glGenBuffers(1)
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_object)
-    glBufferData(
-        GL_ARRAY_BUFFER,  # tipo de datos
-        vertex_data.nbytes,  # tamaño de da data en bytes    
-        vertex_data, # puntero a la data
-        GL_STATIC_DRAW
-    )
-    vertex_array_object = glGenVertexArrays(1)
-    glBindVertexArray(vertex_array_object)
-
-    glVertexAttribPointer(
-        0,
-        3,
-        GL_FLOAT,
-        GL_FALSE,
-        3 * 4,
-        ctypes.c_void_p(0)
-    ) #Aquí se calculan los saltos que se darán en los índices de la matriz de vértices. (Esto es para los vérices del triángulo).
-    glEnableVertexAttribArray(0)
 
 running = True
 
 glClearColor(0.5, 1.0, 0.5, 1.0) #Color de fondo.
 
-loadObject('bowOBJ.obj')
+#loadObject('bowOBJ.obj')
 
 r = 0
 
@@ -222,7 +199,7 @@ while running:
     pygame.time.wait(1)
 
 
-    glDrawArrays(GL_TRIANGLES, 0, 3) #Dibujo del triángulo.
+    glDrawArrays(GL_TRIANGLES, 0, len(indices)) #Dibujo del triángulo.
 
 
     pygame.display.flip()

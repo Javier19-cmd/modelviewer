@@ -1,80 +1,101 @@
 """
 Referencias: 
-1. Arreglar el ValueError: could not convert string to float: 
-    https://researchdatapod.com/python-valueerror-could-not-convert-string-to-float/
-2. Try except para los obj's que tienen doble /: 
-    https://bobbyhadz.com/blog/python-valueerror-invalid-literal-for-int-with-base-10
+https://www.youtube.com/watch?v=DKt4HRBqH1I
 """
 
-class Object(object):
-    
-    def __init__(self, filename):
+import numpy as np
 
-        self.lines = []
 
-        with open(filename) as f: #Abriendo el archivo .obj.
-            lines = f.read().splitlines() #Se leen las líneas, se hacen split y se guardan en la variable global lines.
+class ObjLoader:
+    buffer = []
 
-        self.faces = [] #Lista para las caras del obj.
-        self.vertices = [] #Lista para los vértices del obj.
-        self.vts = [] #Lista para los vértices de textura del obj.
-        self.normal =[] #Lista para las normales del obj.
-        
-        for line in lines:
-
-            if not line or line.startswith("#"): #Si hay una línea vacía o una línea que tenga #, se salta. 
+    @staticmethod
+    def search_data(data_values, coordinates, skip, data_type):
+        for d in data_values:
+            if d == skip:
                 continue
+            if data_type == 'float':
+                coordinates.append(float(d))
+            elif data_type == 'int':
+                coordinates.append(int(d)-1)
 
-            
-            prefix, value = line.split(' ', 1) #Se hace split de la línea en dos partes, el prefijo y el valor.
 
-            if prefix == 'v': #Si el prefijo es v, se agrega el valor a la lista de vértices.
-                self.vertices.append(
-                    list(
-                        map(
-                            float, value.strip().split(' ') #Se quitan los strings inválidos y los espacios. Luego se convierten a float.
-                        )
-                    )
-                )                
-                #print(vertices) #Debuggeo.
-            if prefix == 'f': #Si el prefijo es f, se agrega el valor a la lista de caras.
-                try: 
-                    self.faces.append(
-                        [
-                            list(
-                                map(int, face.strip().split('/') #Se quita el / y se convierte a entero.
-                                )
-                            ) 
-                            for face in value.strip().split(' ') #Se quita el espacio.
-                        ]
-                    )
-                except: #Aquí se quitan las caras que tienen doble /.
-                    self.faces.append(
-                        [
-                            list(
-                                map(int, face.strip().split('//') #Se quita el / y se convierte a entero.
-                                )
-                            ) 
-                            for face in value.strip().split(' ') #Se quita el espacio.
-                        ]
-                    )
+    @staticmethod # sorted vertex buffer for use with glDrawArrays function
+    def create_sorted_vertex_buffer(indices_data, vertices, textures, normals):
+        for i, ind in enumerate(indices_data):
+            if i % 3 == 0: # sort the vertex coordinates
+                start = ind * 3
+                end = start + 3
+                ObjLoader.buffer.extend(vertices[start:end])
+            elif i % 3 == 1: # sort the texture coordinates
+                start = ind * 2
+                end = start + 2
+                ObjLoader.buffer.extend(textures[start:end])
+            elif i % 3 == 2: # sort the normal vectors
+                start = ind * 3
+                end = start + 3
+                ObjLoader.buffer.extend(normals[start:end])
 
-            if prefix == 'vt': #Si el prefijo es vt, se agrega el valor a la lista de vértices de textura.
-                self.vts.append(
-                    list(
-                        map(
-                            float, value.strip().split(' ') #Se quitan los strings inválidos y los espacios. Luego se convierten a float.
-                        )
-                    )
-                )
-            
-            if prefix == 'vn': #Si el prefijo es v, se agrega el valor a la lista de vértices.
-                self.normal.append(
-                    list(
-                        map(
-                            float, value.strip().split(' ') #Se quitan los strings inválidos y los espacios. Luego se convierten a float.
-                        )
-                    )
-                )  
 
- 
+    @staticmethod # TODO unsorted vertex buffer for use with glDrawElements function
+    def create_unsorted_vertex_buffer(indices_data, vertices, textures, normals):
+        num_verts = len(vertices) // 3
+
+        for i1 in range(num_verts):
+            start = i1 * 3
+            end = start + 3
+            ObjLoader.buffer.extend(vertices[start:end])
+
+            for i2, data in enumerate(indices_data):
+                if i2 % 3 == 0 and data == i1:
+                    start = indices_data[i2 + 1] * 2
+                    end = start + 2
+                    ObjLoader.buffer.extend(textures[start:end])
+
+                    start = indices_data[i2 + 2] * 3
+                    end = start + 3
+                    ObjLoader.buffer.extend(normals[start:end])
+
+                    break
+
+    @staticmethod
+    def load_model(file, sorted=True):
+        vert_coords = [] # will contain all the vertex coordinates
+        tex_coords = [] # will contain all the texture coordinates
+        norm_coords = [] # will contain all the vertex normals
+
+        all_indices = [] # will contain all the vertex, texture and normal indices
+        indices = [] # will contain the indices for indexed drawing
+
+
+        with open(file, 'r') as f:
+            line = f.readline()
+            while line:
+                values = line.split()
+                if values[0] == 'v':
+                    ObjLoader.search_data(values, vert_coords, 'v', 'float')
+                elif values[0] == 'vt':
+                    ObjLoader.search_data(values, tex_coords, 'vt', 'float')
+                elif values[0] == 'vn':
+                    ObjLoader.search_data(values, norm_coords, 'vn', 'float')
+                elif values[0] == 'f':
+                    for value in values[1:]:
+                        val = value.split('/')
+                        ObjLoader.search_data(val, all_indices, 'f', 'int')
+                        indices.append(int(val[0])-1)
+
+                line = f.readline()
+
+        if sorted:
+            # use with glDrawArrays
+            ObjLoader.create_sorted_vertex_buffer(all_indices, vert_coords, tex_coords, norm_coords)
+        else:
+            # use with glDrawElements
+            ObjLoader.create_unsorted_vertex_buffer(all_indices, vert_coords, tex_coords, norm_coords)
+
+        # ObjLoader.show_buffer_data(ObjLoader.buffer)
+
+        buffer = ObjLoader.buffer.copy() # create a local copy of the buffer list, otherwise it will overwrite the static field buffer
+        ObjLoader.buffer = [] # after copy, make sure to set it back to an empty list
+
+        return np.array(indices, dtype='uint32'), np.array(buffer, dtype='float32')
