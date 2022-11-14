@@ -64,7 +64,7 @@ shader = compileProgram(
 glUseProgram(shader) #Se usa el shader.
 
 #Obteniendo los datos del modelo.
-indices, vertex_data = ObjLoader.load_model('Car.obj')
+indices, vertex_data = ObjLoader.load_model('barril.obj')
 
 # print(vertex_data)
 # print(indices)
@@ -99,6 +99,7 @@ glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
+
 glEnableVertexAttribArray(0)
 glVertexAttribPointer(
     0,
@@ -110,13 +111,13 @@ glVertexAttribPointer(
 ) #Aquí se calculan los saltos que se darán en los índices de la matriz de vértices. (Esto es para los vérices del triángulo).    
 
 
-vertex_array_object = glGenVertexArrays(1)
-glBindVertexArray(vertex_array_object)
+# vertex_array_object = glGenVertexArrays(1)
+# glBindVertexArray(vertex_array_object)
 
-glEnableVertexAttribArray(0)
+glEnableVertexAttribArray(1)
 glVertexAttribPointer(
-    0,
-    3,
+    1,
+    2,
     GL_FLOAT,
     GL_FALSE,
     32,
@@ -139,7 +140,7 @@ def calculateMatrix(angle): #Método para calcular la matriz del modelo.
     i = glm.mat4(1)
     translate = glm.translate(i, glm.vec3(0, 0, 0))
     rotate = glm.rotate(i, glm.radians(angle), glm.vec3(0, 1, 0))
-    scale = glm.scale(i, glm.vec3(3, 3, 3))
+    scale = glm.scale(i, glm.vec3(0.6, 0.6, 0.6))
 
     model = translate * rotate * scale
 
@@ -165,13 +166,12 @@ def calculateMatrix(angle): #Método para calcular la matriz del modelo.
         glm.value_ptr(amatrix)
     ) #Envío de la matriz de transformación al shader.
 
-glViewport(0, 0, 1000, 500) #Definición del viewport.
+glViewport(0, 0, 500, 500) #Definición del viewport.
 
 
 running = True
 
 glClearColor(0.5, 1.0, 0.5, 1.0) #Color de fondo.
-
 #loadObject('bowOBJ.obj')
 
 r = 0
