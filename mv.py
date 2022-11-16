@@ -7,6 +7,7 @@ import pygame
 from OpenGL.GL import *
 from OpenGL.GL.shaders import *
 import glm
+from PIL import Image
 from ObjLoader import ObjLoader
 
 pygame.init()
@@ -17,8 +18,10 @@ screen = pygame.display.set_mode(
 )
 # dT = pygame.time.Clock()
 
-
+#Se necesitan 3 de estos.
 #Código para la creación del shader.
+
+#Shader base.
 vertex_shader = """
 #version 460
 layout (location = 0) in vec3 position;
@@ -63,8 +66,98 @@ shader = compileProgram(
 
 glUseProgram(shader) #Se usa el shader.
 
+#Shader para la tecla "a" y la flecha derecha.
+vertex_shader1 = """
+#version 460
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec3 vertexColor;
+
+uniform mat4 amatrix;
+
+out vec3 ourColor;
+
+
+void main()
+{
+    gl_Position = amatrix * vec4(position, 1.0f);
+    ourColor = vertexColor;
+
+}
+"""
+
+#Código para la creación del shader.
+fragment_shader1 = """
+#version 460
+
+layout (location = 0) out vec4 fragColor;
+
+uniform vec3 color;
+
+
+in vec3 ourColor;
+
+void main()
+{
+    // fragColor = vec4(ourColor, 1.0f);
+    fragColor = vec4(color, 1.0f);
+}
+"""
+
+#Código para la creación del shader.
+compiled_vertex_shader1 = compileShader(vertex_shader1, GL_VERTEX_SHADER)
+compiled_fragment_shader1 = compileShader(fragment_shader1, GL_FRAGMENT_SHADER)
+shader1 = compileProgram(
+    compiled_vertex_shader,
+    compiled_fragment_shader1
+) #Código para la creación del shader.
+
+#Shader para la tecla "d" y la flecha derecha.
+vertex_shader2 = """
+#version 460
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec3 vertexColor;
+
+uniform mat4 amatrix;
+
+out vec3 ourColor;
+
+
+void main()
+{
+    gl_Position = amatrix * vec4(position, 1.0f);
+    ourColor = vertexColor;
+
+}
+"""
+#El glUseProgram de estos shaders se usa en el loop principal.
+#Código para la creación del shader.
+fragment_shader2 = """
+#version 460
+
+layout (location = 0) out vec4 fragColor;
+
+uniform vec3 color;
+
+
+in vec3 ourColor;
+
+void main()
+{
+    // fragColor = vec4(ourColor, 1.0f);
+    fragColor = vec4(color, 1.0f);
+}
+"""
+
+#Código para la creación del shader.
+compiled_vertex_shader2 = compileShader(vertex_shader2, GL_VERTEX_SHADER)
+compiled_fragment_shader2 = compileShader(fragment_shader2, GL_FRAGMENT_SHADER)
+shader2 = compileProgram(
+    compiled_vertex_shader,
+    compiled_fragment_shader2
+) #Código para la creación del shader.
+
 #Obteniendo los datos del modelo.
-indices, vertex_data = ObjLoader.load_model('barril.obj')
+indices, vertex_data = ObjLoader.load_model('Car.obj')
 
 # print(vertex_data)
 # print(indices)
@@ -88,16 +181,6 @@ glBufferData(
     indices,
     GL_STATIC_DRAW
 )
-
-#Trabjando las texturas del modelo.
-texture = glGenTextures(1)
-glBindTexture(GL_TEXTURE_2D, texture)
-
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
 
 glEnableVertexAttribArray(0)
@@ -181,20 +264,21 @@ while running:
 
     glClear(GL_COLOR_BUFFER_BIT) #Limpieza del buffer de color.
 
-    #Área del triángulo 1.
-    color1 = random.random()
-    color2 = random.random()
-    color3 = random.random()
+    # #Área del segundo shader.
+    # color1 = random.random()
+    # color2 = random.random()
+    # color3 = random.random()
 
-    color = glm.vec3(40, 25, 100) #Color del triángulo.
+    # color1 = glm.vec3(100, 100, 100) #Color del triángulo.
 
-    glUniform3fv(
-        glGetUniformLocation(shader,'color'),
-        1,
-        glm.value_ptr(color)
-    ) #Envío del color al shader.
+    # glUniform3fv(
+    #     glGetUniformLocation(shader1,'color'),
+    #     1,
+    #     glm.value_ptr(color1)
+    # ) #Envío del color al shader.
 
     calculateMatrix(r) #Calculo de la matriz de transformación.
+
 
     pygame.time.wait(1)
 
@@ -209,11 +293,60 @@ while running:
             running = False
 
         if event.type == pygame.KEYDOWN: #Detectando la tecla presionada.
-            if event.key == pygame.K_a: #Rotación hacia la izquierda.
-                r += 20
-            if event.key == pygame.K_d: #Rotación hacia la derecha.
-                r -= 20
+            if event.key == pygame.K_a: #Shader que se usará cuando se gire a la izquierda.
+                color1 = 0
+                color2 = 1
+                color3 = 2
+
+                color = glm.vec3(color1, color2, color3)
+
+                glUniform3fv(
+                    glGetUniformLocation(shader,'color'),
+                    1,
+                    glm.value_ptr(color)
+                )
+            
+            #glUseProgram(shader) #Se usa el shader.
+
+            #glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) #Limpieza del buffer de color.
+
+            if event.key == pygame.K_d: #Segundo shader.
+                
+                color4 = 100
+                color5 = 100
+                color6 = 100
+
+                color1 = glm.vec3(color4, color5, color6)
+
+                glUniform3fv(
+                    glGetUniformLocation(shader1,'color'),
+                    1,
+                    glm.value_ptr(color1)
+                )
+
+                glUseProgram(shader1) #Se usa el shader.
+
+                #glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) #Limpieza del buffer de color.
+
+            if event.key == pygame.K_w: #Tercer shader.
+                color7 = 100
+                color8 = 100
+                color9 = 100
+
+                color2 = glm.vec3(color7, color8, color9)
+
+                glUniform3fv(
+                    glGetUniformLocation(shader2,'color'),
+                    1,
+                    glm.value_ptr(color2)
+                )
+                
+                glUseProgram(shader2) #Se usa el shader.
+
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) #Limpieza del buffer de color.
+
             if event.key == pygame.K_LEFT: #Rotación hacia la izquierda.
+                #glUseProgram(shader1) #Se usa el shader.
                 r += 20
             if event.key == pygame.K_RIGHT: #Rotación hacia la derecha.
                 r -= 20
