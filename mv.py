@@ -249,7 +249,7 @@ def calculateMatrix(angle): #Método para calcular la matriz del modelo.
         glm.value_ptr(amatrix)
     ) #Envío de la matriz de transformación al shader.
 
-glViewport(0, 0, 500, 500) #Definición del viewport.
+glViewport(500, 500, 500, 500) #Definición del viewport.
 
 
 running = True
@@ -257,7 +257,16 @@ running = True
 glClearColor(0.5, 1.0, 0.5, 1.0) #Color de fondo.
 #loadObject('bowOBJ.obj')
 
+#Variables default para la corrida.
 r = 0
+
+color0 = glm.vec3(random.random(), random.random(), random.random()) #Color del triángulo.
+
+glUniform3fv(
+    glGetUniformLocation(shader,'color'),
+    1,
+    glm.value_ptr(color0)
+) #Envío del color al shader.
 
 while running:
     #r += 20 #Variable para el ángulo de rotación.
@@ -269,13 +278,6 @@ while running:
     # color2 = random.random()
     # color3 = random.random()
 
-    # color1 = glm.vec3(100, 100, 100) #Color del triángulo.
-
-    # glUniform3fv(
-    #     glGetUniformLocation(shader1,'color'),
-    #     1,
-    #     glm.value_ptr(color1)
-    # ) #Envío del color al shader.
 
     calculateMatrix(r) #Calculo de la matriz de transformación.
 
@@ -312,9 +314,9 @@ while running:
 
             if event.key == pygame.K_d: #Segundo shader.
                 
-                color4 = 100
-                color5 = 100
-                color6 = 100
+                color4 = 0.5
+                color5 = 0.7
+                color6 = 1
 
                 color1 = glm.vec3(color4, color5, color6)
 
@@ -329,9 +331,9 @@ while running:
                 #glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) #Limpieza del buffer de color.
 
             if event.key == pygame.K_w: #Tercer shader.
-                color7 = 100
-                color8 = 100
-                color9 = 100
+                color7 = 2
+                color8 = 0
+                color9 = 1
 
                 color2 = glm.vec3(color7, color8, color9)
 
