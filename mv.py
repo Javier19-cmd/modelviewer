@@ -22,6 +22,51 @@ screen = pygame.display.set_mode(
 #Código para la creación del shader.
 
 #Shader base.
+vertex_shader0 = """
+#version 460
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec3 vertexColor;
+
+uniform mat4 amatrix;
+
+out vec3 ourColor;
+
+
+void main()
+{
+    gl_Position = amatrix * vec4(position, 1.0f);
+    ourColor = vertexColor;
+
+}
+"""
+#Código para la creación del shader.
+fragment_shader0 = """
+#version 460
+
+layout (location = 0) out vec4 fragColor;
+
+uniform vec3 color;
+
+
+in vec3 ourColor;
+
+void main()
+{
+    // fragColor = vec4(ourColor, 1.0f);
+    fragColor = vec4(color, 1.0f);
+}
+"""
+#Código para la creación del shader.
+compiled_vertex_shader0 = compileShader(vertex_shader0, GL_VERTEX_SHADER)
+compiled_fragment_shader0 = compileShader(fragment_shader0, GL_FRAGMENT_SHADER)
+shader0 = compileProgram(
+    compiled_vertex_shader0,
+    compiled_fragment_shader0
+) #Código para la creación del shader.
+
+glUseProgram(shader0) #Se usa el shader.
+
+#Shader base.
 vertex_shader = """
 #version 460
 layout (location = 0) in vec3 position;
@@ -64,7 +109,7 @@ shader = compileProgram(
     compiled_fragment_shader
 ) #Código para la creación del shader.
 
-glUseProgram(shader) #Se usa el shader.
+#glUseProgram(shader) #Se usa el shader.
 
 #Shader para la tecla "a" y la flecha derecha.
 vertex_shader1 = """
@@ -263,7 +308,7 @@ r = 0
 color0 = glm.vec3(random.random(), random.random(), random.random()) #Color del triángulo.
 
 glUniform3fv(
-    glGetUniformLocation(shader,'color'),
+    glGetUniformLocation(shader0,'color'),
     1,
     glm.value_ptr(color0)
 ) #Envío del color al shader.
