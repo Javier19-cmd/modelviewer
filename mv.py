@@ -66,7 +66,7 @@ shader0 = compileProgram(
 
 glUseProgram(shader0) #Se usa el shader.
 
-#Shader base.
+#Shader para la tecla "a".
 vertex_shader = """
 #version 460
 layout (location = 0) in vec3 position;
@@ -111,7 +111,7 @@ shader = compileProgram(
 
 #glUseProgram(shader) #Se usa el shader.
 
-#Shader para la tecla "a" y la flecha derecha.
+#Shader para la tecla "d".
 vertex_shader1 = """
 #version 460
 layout (location = 0) in vec3 position;
@@ -156,7 +156,7 @@ shader1 = compileProgram(
     compiled_fragment_shader1
 ) #Código para la creación del shader.
 
-#Shader para la tecla "d" y la flecha derecha.
+#Shader para la tecla "w".
 vertex_shader2 = """
 #version 460
 layout (location = 0) in vec3 position;
