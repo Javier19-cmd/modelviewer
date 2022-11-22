@@ -98,7 +98,7 @@ in vec3 ourColor;
 void main()
 {
     // fragColor = vec4(ourColor, 1.0f);
-    fragColor = vec4(color, 1.0f);
+    fragColor = vec4(color, 1.0f) - vec4(ourColor, 0.2f);
 }
 """
 #Código para la creación del shader.
@@ -144,7 +144,9 @@ in vec3 ourColor;
 void main()
 {
     // fragColor = vec4(ourColor, 1.0f);
-    fragColor = vec4(color, 1.0f);
+
+    // Cambiando el color del objeto.
+    fragColor = (vec4(color, 1.0f) / vec4(ourColor, 2.5f)) * 0.0004f;
 }
 """
 
@@ -169,8 +171,9 @@ out vec3 ourColor;
 
 void main()
 {
+    // Aumentando el valor de la posición en el eje z, se acerca la cámara.
     gl_Position = amatrix * vec4(position, 1.0f);
-    ourColor = vertexColor;
+
 
 }
 """
@@ -189,7 +192,7 @@ in vec3 ourColor;
 void main()
 {
     // fragColor = vec4(ourColor, 1.0f);
-    fragColor = vec4(color, 1.0f);
+    fragColor = vec4(color, 2.0f) * vec4(ourColor, 5.0f);
 }
 """
 
